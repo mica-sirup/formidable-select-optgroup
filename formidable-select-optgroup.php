@@ -31,21 +31,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 function frm_add_optgroup($html, $field, $args){
 	if ($field['type']=='select'){
 		if (strpos($html,'**') !== false) {
-			$html = preg_replace( "/(<option.*>)\n/", "$1", $html ); //remove line breaks from middle of option HTML
-			$options = explode("\n", $html);
-			$optgroup_i = 0;
-			foreach($options as $key => $opt){
-				if (strpos($opt,'**') !== false) {
-					preg_match('/<\s*?option\b[^>]*>\s*\*\*(.*?)\*\*\s*<\/option\b[^>]*>/sm', $opt, $matches);
-					if (!empty($matches[1])){
-						$close_prev = ($optgroup_i > 0)? "</optgroup>\n" : "";
-						$options[$key] = "$close_prev<optgroup label=\"{$matches[1]}\">";
-						$optgroup_i++;
-					}
-				}
-			}
-			if ($optgroup_i > 0) $options[] = "</optgroup>\n"; //Close last group
-			$html = implode("\n", $options);
+			$re = '/<option \s?value="(\*\*\w+)(.*?)<\/option>/m';
+			$html = preg_replace_callback($re, function($matches) {
+				$value = substr($matches[1], 2); // Remove leading **
+				return '<optgroup label="' . $value . '">' . $matches[2] . '</optgroup>';
+			  }, $html);
+ 
 		}
 	}
 	return $html;
